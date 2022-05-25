@@ -47,7 +47,7 @@ class MY_RSA():
         self.rpk=rsa.PublicKey.load_pkcs1(rpk)
     def encryp(self,msg):
         msg_bytes=bytes(msg,"utf-8")
-        # cut it into smaller fragment
+        # cut msg into smaller fragments, divided by '|'
         # L= k*110+r
         L=len(msg_bytes)
         k=L//110
