@@ -9,84 +9,93 @@ import base64
 # import pyperclip
 
 LOG_LINE_NUM = 0
+
+
 class MY_RSA():
     def __init__(self):
         pass
+
     def genkeypair(self):
-        (pk,sk)=rsa.newkeys(1024)
-        publickeybyte=pk.save_pkcs1()
-        screcrtkeybyte=sk.save_pkcs1()
-        self.pk=pk
-        self.sk=sk
-        #保存秘钥
-        pfile=open('pkey','wb+')
+        (pk, sk) = rsa.newkeys(1024)
+        publickeybyte = pk.save_pkcs1()
+        screcrtkeybyte = sk.save_pkcs1()
+        self.pk = pk
+        self.sk = sk
+        # 保存秘钥
+        pfile = open('pkey', 'wb+')
         pfile.write(publickeybyte)
 
         pfile.close()
 
-        sfile=open('skey','wb+')
+        sfile = open('skey', 'wb+')
         sfile.write(screcrtkeybyte)
 
         sfile.close()
 
     def loadkeypair(self):
-        pfile=open('pkey','r')
-        publickeybyte=pfile.read()
-        pk=rsa.PublicKey.load_pkcs1(publickeybyte)
+        pfile = open('pkey', 'r')
+        publickeybyte = pfile.read()
+        pk = rsa.PublicKey.load_pkcs1(publickeybyte)
 
         pfile.close()
 
-        sfile=open('skey','r')
-        screcrtkeybyte=sfile.read()
-        sk=rsa.PrivateKey.load_pkcs1(screcrtkeybyte)
+        sfile = open('skey', 'r')
+        screcrtkeybyte = sfile.read()
+        sk = rsa.PrivateKey.load_pkcs1(screcrtkeybyte)
         sfile.close()
 
-        self.pk=pk
-        self.sk=sk
-    def loadrpk(self,rpk):
-        self.rpk=rsa.PublicKey.load_pkcs1(rpk)
-    def encryp(self,msg):
-        msg_bytes=bytes(msg,"utf-8")
+        self.pk = pk
+        self.sk = sk
+
+    def loadrpk(self, rpk):
+        self.rpk = rsa.PublicKey.load_pkcs1(rpk)
+
+    def encryp(self, msg):
+        msg_bytes = bytes(msg, "utf-8")
         # cut msg into smaller fragments, divided by '|'
         # L= k*110+r
-        L=len(msg_bytes)
-        k=L//110
-        r=L%110
-        msg_enc_b64=b''
+        L = len(msg_bytes)
+        k = L//110
+        r = L % 110
+        msg_enc_b64 = b''
         for i in range(k):
-            msg_enc=rsa.encrypt(msg_bytes[110*i:110*i+110],self.rpk)
-            msg_enc_b64+=base64.b64encode(msg_enc)+b'|'
+            msg_enc = rsa.encrypt(msg_bytes[110*i:110*i+110], self.rpk)
+            msg_enc_b64 += base64.b64encode(msg_enc)+b'|'
 
-        if r!=0:
-            msg_enc=rsa.encrypt(msg_bytes[L-r:],self.rpk)
-            msg_enc_b64+=base64.b64encode(msg_enc)
+        if r != 0:
+            msg_enc = rsa.encrypt(msg_bytes[L-r:], self.rpk)
+            msg_enc_b64 += base64.b64encode(msg_enc)
         else:
-            msg_enc_b64=msg_enc_b64[:-1]
+            msg_enc_b64 = msg_enc_b64[:-1]
         # print(msg_enc_b64)
         return msg_enc_b64
-    def decrypt(self,msg_enc_b64):
-        msg_enc_b64=msg_enc_b64.split('|')
-        msg=''
-        msg_bytes=b''
+
+    def decrypt(self, msg_enc_b64):
+        msg_enc_b64 = msg_enc_b64.split('|')
+        msg = ''
+        msg_bytes = b''
         for msg in msg_enc_b64:
-            msg=base64.b64decode(msg)
+            msg = base64.b64decode(msg)
             # print(msg)
-            msg_bytes+=rsa.decrypt(msg,self.sk)
-            temp=rsa.decrypt(msg,self.sk)
+            msg_bytes += rsa.decrypt(msg, self.sk)
+            temp = rsa.decrypt(msg, self.sk)
             # print(temp,end='\n\n')
         # print(msg_bytes)
-        msg=str(msg_bytes,"utf-8")
+        msg = str(msg_bytes, "utf-8")
         # print(msg)
         return msg
+
     def pkbyte(self):
         return self.pk.save_pkcs1()
+
     def skbyte(self):
         return self.sk.save_pkcs1()
+
 
 class MY_GUI():
     def __init__(self, init_window_name):
         self.init_window_name = init_window_name
-        self.rsa=MY_RSA()
+        self.rsa = MY_RSA()
 
     # 设置窗口
 
@@ -136,31 +145,33 @@ class MY_GUI():
         self.log_Text.grid(row=33, column=0, columnspan=6, rowspan=20)
         # 按钮
         self.genratekey = Button(self.init_window_name, text="生成公私钥",
-                                 bg="lightblue", width=10, command=self.gen_keypair)
+                                 bg="lightblue", width=10, height=2, command=self.gen_keypair)
         self.genratekey.grid(row=20, column=0)
 
         self.loadkeypair = Button(self.init_window_name, text="加载公私钥",
-                                 bg="lightblue", width=10, command=self.load_keypair)
+                                  bg="lightblue", width=10, height=2, command=self.load_keypair)
         self.loadkeypair.grid(row=20, column=1)
 
         self.process = Button(self.init_window_name, text="处理!",
-                                 bg="lightblue", width=16,height=2, command=self.process_text)
+                              bg="lightblue", width=16, height=2, command=self.process_text)
         self.process.grid(row=21, column=13)
 
         self.accpetpk = Button(self.init_window_name, text="接受公钥",
-                                 bg="lightblue", width=16,height=2, command=self.accpet_pk)
+                               bg="lightblue", width=16, height=2, command=self.accpet_pk)
         self.accpetpk.grid(row=23, column=1)
 
-        #INIT
+        # INIT
         self.write_log_to_Text("启动成功")
+        self.write_log_to_Text("版本1.0")
 
     # 功能函数
     def accpet_pk(self):
-        rpk = self.rpk_Text.get(1.0,END)
+        rpk = self.rpk_Text.get(1.0, END)
         self.write_log_to_Text("接受公钥")
         # print(rpk)
 
         self.rsa.loadrpk(rpk)
+
     def load_keypair(self):
         self.rsa.loadkeypair()
         self.pk_Text.delete(1.0, END)
@@ -169,6 +180,7 @@ class MY_GUI():
         self.sk_Text.insert(1.0, "任何情况下,你都不应该公开你的私钥")
         self.write_log_to_Text("加载秘钥对")
         pass
+
     def gen_keypair(self):
         self.rsa.genkeypair()
         self.pk_Text.delete(1.0, END)
@@ -176,31 +188,32 @@ class MY_GUI():
         self.sk_Text.delete(1.0, END)
         self.sk_Text.insert(1.0, self.rsa.skbyte())
         self.write_log_to_Text("生成秘钥对")
+
     def copypkto_clipboard(self):
         # pyperclip.copy("haha")
         pass
+
     def pasterskfrom_clipboard(self):
         # rpk=pyperclip.paste()
-        rpk="asdf"
+        rpk = "asdf"
         pass
         self.rpk_Text.delete(1.0, END)
         self.rpk_Text.insert(1.0, rpk)
+
     def process_text(self):
-        src = self.msg1_Text.get(1.0,END)
+        src = self.msg1_Text.get(1.0, END)
         # print(src)
         if src:
             try:
-                msg=self.rsa.decrypt(src)
+                msg = self.rsa.decrypt(src)
                 self.msg2_Text.delete(1.0, END)
                 self.msg2_Text.insert(1.0, msg)
                 self.write_log_to_Text("解密信息")
             except:
-                msg=self.rsa.encryp(src)
+                msg = self.rsa.encryp(src)
                 self.msg2_Text.delete(1.0, END)
                 self.msg2_Text.insert(1.0, msg)
                 self.write_log_to_Text("加密信息")
-
-    
 
     # 获取当前时间
 
