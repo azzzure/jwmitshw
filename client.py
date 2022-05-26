@@ -186,7 +186,7 @@ class MY_GUI():
         self.pk_Text.delete(1.0, END)
         self.pk_Text.insert(1.0, self.rsa.pkbyte())
         self.sk_Text.delete(1.0, END)
-        self.sk_Text.insert(1.0, self.rsa.skbyte())
+        self.sk_Text.insert(1.0, "任何情况下,你都不应该公开你的私钥")
         self.write_log_to_Text("生成秘钥对")
 
     def copypkto_clipboard(self):
